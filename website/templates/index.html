@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% from "_projects_table.html" import projects_table %}
+{% from "_entry_rows.html" import entry_rows with context %}
+{% block extra_head %}
+<script type="application/ld+json">{{ homepage_json_ld | safe }}</script>
+{% endblock %}
+{% block header %}
+<header class="hero">
+  <div class="hero-noise" aria-hidden="true"></div>
+
+  <div class="hero-shell">
+    {%+ with home = true %}{% include "_topbar.html" %}{% endwith +%}
+
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <p class="hero-kicker">Answers "I want to do X in Python. Which tool should I use?"</p>
+        <h1>Awesome Python</h1>
+        <p class="hero-sub">{{ subtitle }}</p>
+        <p class="hero-proof">
+          {% if repo_stars %}<span class="proof-stat">{{ repo_stars }}+ stars on GitHub</span> <span class="proof-sep">/</span>{% endif %} <span class="proof-stat">Maintained by
+          <a href="https://github.com/vinta" target="_blank" rel="noopener">@vinta</a>
+          and
+          <a href="https://github.com/JinyangWang27" target="_blank" rel="noopener">@JinyangWang27</a></span>
+        </p>
+        <div class="hero-actions">
+          <a
+            href="#library-index"
+            class="hero-action hero-action-primary"
+            data-scroll-to="library-index"
+            >Browse the list</a
+          >
+          <a
+            href="https://github.com/vinta/awesome-python"
+            class="hero-action hero-action-secondary"
+            target="_blank"
+            rel="noopener"
+            >View on GitHub</a
+          >
+        </div>
+      </div>
+    </div>
+
+    {%+ with nav_categories = categories %}{% include "_category_nav.html" %}{% endwith +%}
+  </div>
+</header>
+{% endblock %}
+{% block content %}
+{% include "_sponsor_band.html" %}
+
+<section class="results-section" id="library-index">
+  <div class="results-intro section-shell">
+    <div>
+      <h2>Search projects in one place</h2>
+    </div>
+    <p class="results-note">
+      Press <kbd>/</kbd> to search. Tags open their category. Click a row for
+      details.
+    </p>
+  </div>
+
+  {% call projects_table(entries | length, "across " ~ total_categories ~ " categories") %}
+        {% for entry in entries %}
+        {{ entry_rows(entry, loop.index, home=true) }}
+        {% endfor %}
+  {% endcall %}
+</section>
+
+{% include "_final_cta.html" +%}
+{% endblock %}

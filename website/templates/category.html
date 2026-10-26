@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% from "_projects_table.html" import projects_table %}
+{% from "_entry_rows.html" import entry_rows with context %}
+{% block title %}{{ category_title }}{% endblock %}
+{% block description %}{{ category_description }}{% endblock %}
+{% block canonical_url %}{{ category_url }}{% endblock %}
+{% block alternate_links %}{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">{{ category_json_ld | safe }}</script>
+{% endblock %}
+{% block header %}
+<header class="category-hero">
+  <div class="hero-noise" aria-hidden="true"></div>
+
+  <div class="category-hero-shell">
+    {%+ with all_projects = true %}{% include "_topbar.html" %}{% endwith +%}
+
+    <div class="category-hero-copy">
+      {% if parent_category %}
+      <p class="category-breadcrumb">
+        <a href="/categories/{{ parent_category.slug }}/">{{ parent_category.name }}</a>
+      </p>
+      {% endif %}
+      <h1>{{ category.name }}</h1>
+      {% if category.description_html %}
+      <p class="category-subtitle">{{ category.description_html | safe }}</p>
+      {% endif %}
+      {% if intro_html %}
+      <div class="category-intro">{{ intro_html | safe }}</div>
+      {% endif %}
+      {% set named_groups = entry_groups | selectattr("name") | list %}
+      {% if (named_groups and not group_categories) or guide_html %}
+      <nav class="jump-links" aria-label="On this page">
+        {% if not group_categories %}
+        {% for group in named_groups %}
+        <a class="jump-link" href="#{{ group.slug }}">{{ group.name }}</a>
+        {% endfor %}
+        {% endif %}
+        {% if guide_html %}
+        <a class="jump-link" href="#guide">{{ category.name }} guide</a>
+        {% endif %}
+      </nav>
+      {% endif %}
+    </div>
+
+    {% if group_categories %}
+    {%+ with nav_categories = group_categories %}{% include "_category_nav.html" %}{% endwith +%}
+    {% endif %}
+  </div>
+</header>
+{% endblock %}
+{% block content %}
+{% include "_sponsor_band.html" %}
+
+<section class="results-section" id="library-index">
+  {% set single_entry = entries | length == 1 %}
+  <div class="results-intro section-shell">
+    {% if entry_groups and not single_entry %}
+    {% set named_groups = entry_groups | selectattr("name") | list %}
+    <p class="order-note">
+      {% if group_categories %}Listed by section, in editorial order.{% elif named_groups %}Listed in editorial order, grouped by use case.{% else %}Listed in editorial order.{% endif %}
+      <strong>Click a column header</strong> to re-sort the whole list.
+    </p>
+    {% elif not entry_groups %}
+    <div>
+      <h2>{{ entries | length }} {{ category.name }} project{{ "s" if not single_entry }}</h2>
+    </div>
+    {% endif %}
+    <p class="results-note">
+      {% if not single_entry %}Press <kbd>/</kbd> to search. {% endif %}Tags open their category. Click a row for
+      details.
+    </p>
+  </div>
+
+  {% call projects_table(entries | length, "in " ~ category.name, entry_groups) %}
+        {% if entry_groups %}
+        {% set row = namespace(index=0) %}
+        {% for group in entry_groups %}
+        {% if group.name %}
+        <tr class="group-row">
+          <th colspan="7" scope="rowgroup">
+            <h2 id="{{ group.slug }}">
+              {% if group.url %}<a href="{{ group.url }}">{{ group.name }}</a>{% else %}{{ group.name }}{% endif %}
+              <span class="group-count">{{ group.entries | length }} project{{ "s" if group.entries | length != 1 }}</span>
+            </h2>
+            {% if group.lead %}
+            <div class="group-lead">{{ group.lead | safe }}</div>
+            {% endif %}
+          </th>
+        </tr>
+        {% endif %}
+        {% for entry in group.entries %}
+        {% set row.index = row.index + 1 %}
+        {{ entry_rows(entry, row.index) }}
+        {% endfor %}
+        {% endfor %}
+        {% else %}
+        {% for entry in entries %}
+        {{ entry_rows(entry, loop.index) }}
+        {% endfor %}
+        {% endif %}
+  {% endcall %}
+</section>
+
+{% if guide_html %}
+<section class="guide-band" id="guide">
+  <div class="guide-section section-shell">
+    <h2>{{ category.name }} guide</h2>
+    <div class="guide-body">{{ guide_html | safe }}</div>
+  </div>
+</section>
+{% endif %}
+
+{% include "_final_cta.html" +%}
+{% endblock %}

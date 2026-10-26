@@ -1,16 +1,32 @@
-BASEDIR=$(CURDIR)
-DOCDIR=$(BASEDIR)/docs
+-include .env
+export
 
 install:
-	pip install mkdocs
+	uv sync --locked
 
-link:
-	ln -sf $(BASEDIR)/README.md $(DOCDIR)/index.md
+fetch_github_stars:
+	uv run python website/fetch_github_stars.py
 
-preview:
-	$(MAKE) link
-	mkdocs serve
+fetch_pypi_downloads:
+	uv run python website/fetch_pypi_downloads_via_clickpy.py
 
-deploy:
-	$(MAKE) link
-	mkdocs gh-deploy --clean
+test:
+	uv run pytest website/tests/ -v
+
+lint:
+	uv run ruff check .
+
+format:
+	uv run ruff format .
+
+typecheck:
+	uv run ty check website
+
+build:
+	uv run python website/build.py
+
+preview: build
+	uv run watchfiles \
+		'uv run python website/build.py' \
+		README.md website/templates website/static website/data & \
+	python -m http.server -b 127.0.0.1 -d website/output/ 8000
